@@ -1,4 +1,28 @@
-﻿using System;
+﻿#region Copyright (c) 2017 G. Gagnaux, https://github.com/ggagnaux/Kohd-Art-Toolkit
+/*
+Kohd & Art Toolkit - A toolkit of general classes/methods for .NET and C#
+
+Copyright (c) 2017 G. Gagnaux, https://github.com/ggagnaux/Kohd-Art-Toolkit
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in the 
+Software without restriction, including without limitation the rights to use, copy, 
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
+and to permit persons to whom the Software is furnished to do so, subject to the 
+following conditions:
+
+The above copyright notice and this permission notice shall be included in 
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,7 +32,7 @@ namespace KohdAndArt.Toolkit.Sys
 {
     public class AssemblyUtilities
     {
-        public List<ClassDetailsStruct> ClassDetailList = new List<ClassDetailsStruct>();
+        public List<ClassDetail> ClassDetailList = new List<ClassDetail>();
         public List<ReferencedAssembly> ReferencedAssemblies = null;
 
         private Assembly _assembly;
@@ -52,6 +76,15 @@ namespace KohdAndArt.Toolkit.Sys
                     }
                 }
                 return System.IO.Path.GetFileNameWithoutExtension(_assembly.CodeBase);
+            }
+        }
+
+
+        private string AssemblyVersion2
+        {
+            get
+            {
+                return _assembly.GetName().Version.ToString();
             }
         }
 
@@ -123,11 +156,15 @@ namespace KohdAndArt.Toolkit.Sys
                 foreach (Type type in RootAssembly.GetTypes())
                 {
                     
-                    ClassDetailsStruct details = new ClassDetailsStruct();
+                    ClassDetail classDetail = new ClassDetail();
 
                     if (type.IsClass)
                     {
-                        details.Name = type.Name;
+                        classDetail.Name = type.Name;
+
+                        //
+                        // Methods
+                        //
                         MethodInfo[] methodInfoArray = type.GetMethods(BindingFlags.Public |
                                                                        BindingFlags.NonPublic |
                                                                        BindingFlags.Instance |
@@ -136,19 +173,20 @@ namespace KohdAndArt.Toolkit.Sys
 
                         for (int i = 0; i < methodInfoArray.Length; i++)
                         {
-                            MethodOrPropertyDetails methodOrPropDetails = new MethodOrPropertyDetails();
+                            MethodDetail methodDetail = new MethodDetail();
                             MethodInfo mi = (MethodInfo)methodInfoArray[i];
-                            methodOrPropDetails.Name = mi.Name;
-                            methodOrPropDetails.IsProperty = IsProperty(mi);
-                            methodOrPropDetails.IsMethod = !IsProperty(mi);
-                            methodOrPropDetails.ProtectionLevel = GetProtectionlevelAsString(mi);
-                            methodOrPropDetails.IsStatic = mi.IsStatic;
-                            methodOrPropDetails.ReturnType = mi.ReturnType.ToString();
+                            methodDetail.Name = mi.Name;
+                            methodDetail.IsPublic = mi.IsPublic;
+                            methodDetail.IsPrivate = mi.IsPrivate;
+                            methodDetail.ProtectionLevel = GetProtectionlevelAsString(mi);
+                            methodDetail.IsStatic = mi.IsStatic;
+                            methodDetail.IsVirtual = mi.IsVirtual;
+                            methodDetail.ReturnType = mi.ReturnType.ToString();
 
                             ParameterInfo[] parameters = mi.GetParameters();
                             foreach (var p in parameters)
                             {
-                                ParameterDetails pd = new ParameterDetails();
+                                ParameterDetail pd = new ParameterDetail();
                                 pd.Name = p.Name;
                                 pd.IsOut = p.IsOut;
                                 pd.IsIn = p.IsIn;
@@ -156,13 +194,95 @@ namespace KohdAndArt.Toolkit.Sys
                                 pd.IsRetVal = p.IsRetval;
                                 pd.Type = p.ParameterType.Name;
 
-                                methodOrPropDetails.Parameters.Add(pd);
+                                methodDetail.Parameters.Add(pd);
                             }
 
-                            details.MethodOrPropertyDetailsList.Add(methodOrPropDetails);
+                            classDetail.MethodDetails.Add(methodDetail);
                         }
 
-                        ClassDetailList.Add(details);
+                        //
+                        // Properties
+                        //
+                        PropertyInfo[] propertyInfoArray = type.GetProperties(BindingFlags.Public |
+                                                                              BindingFlags.NonPublic |
+                                                                              BindingFlags.Instance |
+                                                                              BindingFlags.Static |
+                                                                              BindingFlags.DeclaredOnly);
+
+                        for (int i = 0; i < propertyInfoArray.Length; i++)
+                        {
+                            PropertyDetail propertyDetail = new PropertyDetail();
+                            PropertyInfo pi = (PropertyInfo)propertyInfoArray[i];
+                            PropertyAttributes pa = pi.Attributes;
+                            propertyDetail.Name = pi.Name;
+                            classDetail.PropertyDetails.Add(propertyDetail);
+                        }
+
+
+                        //
+                        // Constructors
+                        //
+                        ConstructorInfo[] constructorInfoArray = type.GetConstructors(BindingFlags.Public |
+                                                                              BindingFlags.NonPublic |
+                                                                              BindingFlags.Instance |
+                                                                              BindingFlags.Static |
+                                                                              BindingFlags.DeclaredOnly);
+
+                        for (int i = 0; i < constructorInfoArray.Length; i++)
+                        {
+                            string name = constructorInfoArray[i].Name;
+                            classDetail.Constructors.Add(name);
+                        }
+
+
+                        //
+                        // Fields
+                        //
+                        FieldInfo[] fieldInfoArray = type.GetFields(BindingFlags.Public |
+                                                                    BindingFlags.NonPublic |
+                                                                    BindingFlags.Instance |
+                                                                    BindingFlags.Static |
+                                                                    BindingFlags.DeclaredOnly);
+
+                        for (int i = 0; i < fieldInfoArray.Length; i++)
+                        {
+                            string name = fieldInfoArray[i].Name;
+                            classDetail.Fields.Add(name);
+                        }
+
+                        //
+                        // Nested Types
+                        //
+                        Type[] nestedTypeArray = type.GetNestedTypes(BindingFlags.Public |
+                                                                    BindingFlags.NonPublic |
+                                                                    BindingFlags.Instance |
+                                                                    BindingFlags.Static |
+                                                                    BindingFlags.DeclaredOnly);
+
+                        for (int i = 0; i < nestedTypeArray.Length; i++)
+                        {
+                            string name = nestedTypeArray[i].Name;
+                            classDetail.NestedTypes.Add(name);
+                        }
+
+
+                        //
+                        // Events
+                        //
+                        EventInfo[] eventInfoArray = type.GetEvents(BindingFlags.Public |
+                                                                    BindingFlags.NonPublic |
+                                                                    BindingFlags.Instance |
+                                                                    BindingFlags.Static |
+                                                                    BindingFlags.DeclaredOnly);
+
+                        for (int i = 0; i < eventInfoArray.Length; i++)
+                        {
+                            string name = eventInfoArray[i].Name;
+                            classDetail.Events.Add(name);
+                        }
+
+
+                        ClassDetailList.Add(classDetail);
                     }
                 }
 
@@ -199,7 +319,7 @@ namespace KohdAndArt.Toolkit.Sys
 
         private string GetProtectionlevelAsString(MethodInfo mi)
         {
-            var level = string.Empty;
+            var level = "protected";
             if (mi.IsPublic)
                 level = "public";
             else if (mi.IsPrivate)
@@ -208,7 +328,7 @@ namespace KohdAndArt.Toolkit.Sys
             return level;
         }
 
-        public struct ParameterDetails
+        public struct ParameterDetail
         {
             public string Type;
             public string Name;
@@ -218,26 +338,27 @@ namespace KohdAndArt.Toolkit.Sys
             public bool IsRetVal;
         }
 
-        public class MethodOrPropertyDetails
+        public class MethodDetail
         {
-            public MethodOrPropertyDetails()
+            public MethodDetail()
             {
-                Parameters = new List<ParameterDetails>();
+                Parameters = new List<ParameterDetail>();
             }
 
-            public string   Name;
-            public bool     IsMethod;
-            public bool     IsProperty;
-            public string   ReturnType;
-            public bool     IsStatic;
-            public bool     IsInstance;
-            public string   ProtectionLevel;
-            public List<ParameterDetails> Parameters;
+            public string Name;
+            public string ReturnType;
+            public bool IsStatic;
+            public bool IsInstance;
+            public string ProtectionLevel;
+            public bool IsPublic;
+            public bool IsPrivate;
+            public bool IsVirtual;
+            public List<ParameterDetail> Parameters;
 
             public string GetParameterList()
             {
                 string result = string.Empty;
-                foreach (var p in Parameters) 
+                foreach (var p in Parameters)
                 {
                     result += $"{p.Type} {p.Name}, ";
                 }
@@ -251,15 +372,51 @@ namespace KohdAndArt.Toolkit.Sys
             }
         }
 
-        public class ClassDetailsStruct
+        public class PropertyDetail
         {
-            public ClassDetailsStruct()
+            public PropertyDetail()
             {
-                MethodOrPropertyDetailsList = new List<MethodOrPropertyDetails>();
             }
 
             public string Name;
-            public List<MethodOrPropertyDetails> MethodOrPropertyDetailsList;
+            public string ReturnType;
+            public bool IsStatic;
+            public bool IsInstance;
+            public string ProtectionLevel;
+        }
+
+        public class ClassDetail
+        {
+            public ClassDetail()
+            {
+                NestedTypes = new List<string>();
+                Fields = new List<string>();
+                Constructors = new List<string>();
+                Events = new List<string>();
+                MethodDetails = new List<MethodDetail>();
+                PropertyDetails = new List<PropertyDetail>();
+            }
+
+            public string Name;
+            public bool IsAbstract;
+            public bool IsAutoLayout;
+            public bool IsClass;
+            public bool IsNested;
+            public bool IsNotPublic;
+            public bool IsPrimitive;
+            public bool IsPublic;
+            public bool IsSerializable;
+            public bool IsSubclassOf;
+            public bool IsValueType;
+            public bool IsVisible;
+            public string Module;
+            public string Namespace;
+            public List<string> NestedTypes;
+            public List<string> Fields;
+            public List<string> Constructors;
+            public List<string> Events;
+            public List<MethodDetail> MethodDetails;
+            public List<PropertyDetail> PropertyDetails;
         }
 
         public class ReferencedAssembly

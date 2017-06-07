@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Collections\Stack.cs" />
     <Compile Include="Math\Math.cs" />
+    <Compile Include="Math\RandomNumberGeneratorTests.cs" />
     <Compile Include="Net\Web.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

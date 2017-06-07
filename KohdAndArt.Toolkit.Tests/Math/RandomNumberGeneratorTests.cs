@@ -24,60 +24,77 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Kohd = KohdAndArt.Toolkit;
+using KohdAndArt.Toolkit;
+using System.Collections.Generic;
 
-namespace KohdAndArt.Toolkit.Tests
+namespace KohdAndArt.UtilityLibrary.Tests.Math
 {
     [TestClass]
-    public class Math
+    public class RandomNumberGeneratorTests
     {
         [TestMethod]
-        public void DegreeToRadian_0Degreesf_Equals_0Radians()
+        public void GenerateSingleIntegerInRange_0_1000()
         {
             // Arrange
-            var degree = 0;
-            var radian = 0D;
+            int lowerBound = 0;
+            int upperBound = 1000;
+            var rand = new RandomNumberGenerator(lowerBound, upperBound);
 
             // Act
-            radian = Kohd.Math.Math.DegreeToRadian(degree);
+            var number = rand.Generate();
 
             // Assert
-            Assert.AreEqual(radian, 0);
+            Assert.IsTrue(number >= lowerBound && number <= upperBound);
         }
 
         [TestMethod]
-        public void CalcHypotenuse_2by2()
+        public void GenerateSingleIntegerInRange_1001_10000()
         {
             // Arrange
-            double delta =    0.00000000000001D;
-            double expected = 2.82842712474619D;
-            var x = 2;
-            var y = 2;
-            double result;
+            int lowerBound = 1001;
+            int upperBound = 10000;
+            var rand = new RandomNumberGenerator(lowerBound, upperBound);
 
             // Act
-            result = Kohd.Math.Math.CalcHypotenuse(x, y);
+            var number = rand.Generate();
 
             // Assert
-            Assert.AreEqual(result, expected, delta);
+            Assert.IsTrue(number >= lowerBound && number <= upperBound);
         }
 
         [TestMethod]
-        public void CalcGravity_10kg_10kg_10m()
+        public void GenerateIntegerListInRange_1001_10000_CheckCount()
         {
             // Arrange
-            double delta = 0.00000000000001D;
-            double expected = 6.6740831E-10;
-            var mass1 = 10;
-            var mass2 = 10;
-            var radius = 10;
-            double result;
+            int lowerBound = 1001;
+            int upperBound = 10000;
+            int count = 100;
+            var rand = new RandomNumberGenerator(lowerBound, upperBound);
 
             // Act
-            result = Kohd.Math.Math.CalcGravity(mass1, mass2, radius);
+            var list = (List<int>)rand.GenerateListUnique(count);
 
             // Assert
-            Assert.AreEqual(result, expected, delta);
-        } 
+            Assert.IsTrue(list.Count == count);
+        }
+
+        //[TestMethod]
+        //public void GenerateIntegerListInRange_1001_10000_CheckUniqueness()
+        //{
+        //    // Arrange
+        //    int lowerBound = 1001;
+        //    int upperBound = 10000;
+        //    int count = 100;
+        //    var rand = new RandomNumberGenerator(lowerBound, upperBound);
+
+        //    // Act
+        //    var list = (List<int>)rand.GenerateListUnique(count);
+
+        //    // Assert
+        //    foreach (var n in list)
+        //    {
+
+        //    }
+        //}
     }
 }

@@ -1,4 +1,28 @@
-﻿using System;
+﻿#region Copyright (c) 2017 G. Gagnaux, https://github.com/ggagnaux/Kohd-Art-Toolkit
+/*
+Kohd & Art Toolkit - A toolkit of general classes/methods for .NET and C#
+
+Copyright (c) 2017 G. Gagnaux, https://github.com/ggagnaux/Kohd-Art-Toolkit
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in the 
+Software without restriction, including without limitation the rights to use, copy, 
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
+and to permit persons to whom the Software is furnished to do so, subject to the 
+following conditions:
+
+The above copyright notice and this permission notice shall be included in 
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+#endregion
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -11,6 +35,7 @@ namespace KohdAndArt.Toolkit
     {
         /// <summary>
         /// Convert a string of the form RRGGBB to a Color
+        /// Example: FF0000 => Color.Red
         /// </summary>
         /// <param name="hexRGB">Input string as a color in hex format Ex: FF00FF</param>
         /// <returns></returns>
@@ -34,7 +59,13 @@ namespace KohdAndArt.Toolkit
             return Color.FromArgb(opacity, r, g, b);
         }
 
-
+        /// <summary>
+        /// Convert an RGB string into it's component R, G and B values via output parameters
+        /// </summary>
+        /// <param name="rgbHex"></param>
+        /// <param name="R"></param>
+        /// <param name="G"></param>
+        /// <param name="B"></param>
         public static void ConvertRGBHexStringToBase10(string rgbHex, out byte R, out byte G, out byte B)
         {
             if (rgbHex.Length < 6 || rgbHex.Length > 6)
@@ -54,6 +85,7 @@ namespace KohdAndArt.Toolkit
 
         /// <summary>
         /// Convert a string of the form RRGGBB to a Color
+        /// Example: FF0000 => Color.Red
         /// </summary>
         /// <param name="hexRGB">Input string as a color in hex format Ex: FF00FF</param>
         /// <returns></returns>
@@ -80,7 +112,8 @@ namespace KohdAndArt.Toolkit
         }
 
         /// <summary>
-        /// 
+        /// Convert a Color into an ARGB string
+        /// Example: Color.Red => FFFF0000
         /// </summary>
         /// <param name="c"></param>
         /// <returns></returns>
@@ -94,6 +127,12 @@ namespace KohdAndArt.Toolkit
             return $"{alpha}{r}{g}{b}";
         }
 
+        /// <summary>
+        /// Convert a Color into an RGB string 
+        /// Example: Color.Red => FF0000
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public static string ConvertColorToHexRGBString(Color c)
         {
             // Set the String (Hex) representation of the color
@@ -103,6 +142,10 @@ namespace KohdAndArt.Toolkit
             return $"{r}{g}{b}";
         }
 
+        /// <summary>
+        /// Returns a list of named colors
+        /// </summary>
+        /// <returns></returns>
         public static List<string> GetListOfNamedColors()
         {
             List<string> colors = new List<string>();
